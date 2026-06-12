@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Map Marker
+
+A full-stack real-time map pinning app. Drop a pin anywhere, upload a photo,
+and watch it appear live on every connected device — instantly.
+
+---
+
+## Features
+
+- Click anywhere on the map to place a pin
+- Upload a photo with each report
+- Pins appear live on all open tabs in real time
+- Auto-centers on your GPS location
+- All pins and photos persisted to a database
+
+---
+
+## Tech Stack
+
+| Layer     | Technology                 |
+| --------- | -------------------------- |
+| Framework | Next.js 14 (App Router)    |
+| Database  | Supabase (PostgreSQL)      |
+| Realtime  | Supabase Realtime          |
+| Storage   | Supabase Storage           |
+| Map       | Leaflet.js + react-leaflet |
+| Styling   | Tailwind CSS               |
+| Language  | TypeScript                 |
+| Hosting   | Vercel                     |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/renzifier/practice.git
+cd practice
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Create a `.env.local` file in the root:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### 4. Set up the database
+
+Run this in the Supabase SQL Editor:
+
+```sql
+CREATE TABLE spots (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lat        FLOAT NOT NULL,
+  lng        FLOAT NOT NULL,
+  photo_url  TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE spots ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "anyone can read spots"
+  ON spots FOR SELECT USING (true);
+
+CREATE POLICY "anyone can insert spots"
+  ON spots FOR INSERT WITH CHECK (true);
+
+ALTER TABLE spots REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE spots;
+```
+
+### 5. Set up storage
+
+Create a public bucket called `photos` in Supabase Storage, then run:
+
+```sql
+CREATE POLICY "allow all on photos"
+  ON storage.objects
+  FOR ALL
+  USING (bucket_id = 'photos')
+  WITH CHECK (bucket_id = 'photos');
+```
+
+### 6. Run the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure

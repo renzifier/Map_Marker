@@ -3,10 +3,21 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 
-export default function Form({ lat, lng }: { lat: number; lng: number }) {
+export default function Form({
+  lat,
+  lng,
+  type,
+  onTypeChange,
+}: {
+  lat: number;
+  lng: number;
+  type: string;
+  onTypeChange: (type: string) => void;
+}) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [description, setDescription] = useState("");
 
   async function handleSubmit() {
     const {
@@ -45,6 +56,8 @@ export default function Form({ lat, lng }: { lat: number; lng: number }) {
       lat,
       lng,
       photo_url: urlData.publicUrl,
+      type,
+      description,
     });
 
     if (insertError) {
@@ -59,14 +72,16 @@ export default function Form({ lat, lng }: { lat: number; lng: number }) {
 
   if (done)
     return (
-      <div style={styles.box}>
-        <p>📍 Spot added!</p>
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-2xl shadow-xl p-5 w-72 text-center">
+        <p className="text-2xl mb-1">📍</p>
+        <p className="font-semibold text-gray-800 mb-3">Spot added!</p>
         <button
           onClick={() => {
             setDone(false);
             setPhoto(null);
+            setDescription("");
           }}
-          style={styles.button}
+          className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl transition-colors"
         >
           Report another
         </button>
@@ -74,45 +89,59 @@ export default function Form({ lat, lng }: { lat: number; lng: number }) {
     );
 
   return (
-    <div style={styles.box}>
-      <p style={{ fontWeight: "bold", marginBottom: 8 }}>Report a spot</p>
-      <p style={{ fontSize: 12, marginBottom: 8 }}>
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-2xl shadow-xl p-5 w-80">
+      <p className="font-semibold text-gray-800 mb-1">Report a spot</p>
+      <p className="text-xs text-gray-400 mb-3">
         📍 {lat.toFixed(4)}, {lng.toFixed(4)}
       </p>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setPhoto(e.target.files?.[0] || null)}
-        style={{ marginBottom: 8, width: "100%" }}
+
+      <div className="flex gap-2 mb-3">
+        {[
+          { key: "shop", label: "Shop", color: "bg-blue-500" },
+          { key: "food", label: "Food", color: "bg-amber-500" },
+          { key: "event", label: "Event", color: "bg-violet-500" },
+          { key: "alert", label: "Alert", color: "bg-red-500" },
+        ].map((t) => (
+          <button
+            key={t.key}
+            onClick={() => onTypeChange(t.key)}
+            className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-colors ${
+              type === t.key
+                ? `${t.color} text-white`
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        placeholder="Add a description (optional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        maxLength={300}
+        rows={2}
+        className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg p-2 mb-3 resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
       />
-      <button onClick={handleSubmit} disabled={loading} style={styles.button}>
+
+      <label className="block mb-3">
+        <span className="sr-only">Choose photo</span>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setPhoto(e.target.files?.[0] || null)}
+          className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-amber-50 file:text-amber-700 file:font-medium hover:file:bg-amber-100"
+        />
+      </label>
+
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-semibold py-2.5 rounded-xl transition-colors"
+      >
         {loading ? "Submitting..." : "Submit"}
       </button>
     </div>
   );
 }
-
-const styles = {
-  box: {
-    position: "absolute" as const,
-    bottom: 40,
-    left: "50%",
-    transform: "translateX(-50%)",
-    background: "white",
-    padding: 16,
-    borderRadius: 12,
-    zIndex: 1000,
-    width: 280,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
-  },
-  button: {
-    width: "100%",
-    padding: "8px 0",
-    background: "#F59E0B",
-    color: "white",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-};

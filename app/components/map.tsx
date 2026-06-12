@@ -13,14 +13,27 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { supabase } from "../../lib/supabase";
 
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+function createIcon(color: string) {
+  return L.divIcon({
+    html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 14 26 14 26s14-16.5 14-26C28 6.27 21.73 0 14 0z" fill="${color}"/>
+      <circle cx="14" cy="14" r="5" fill="white"/>
+    </svg>`,
+    className: "",
+    iconSize: [28, 40],
+    iconAnchor: [14, 40],
+    popupAnchor: [0, -36],
+  });
+}
+
+const icons: Record<string, L.DivIcon> = {
+  shop: createIcon("#3B82F6"),
+  food: createIcon("#F59E0B"),
+  event: createIcon("#8B5CF6"),
+  alert: createIcon("#EF4444"),
+};
+
+const defaultIcon = createIcon("#6B7280");
 
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
@@ -48,16 +61,20 @@ type Spot = {
   lat: number;
   lng: number;
   photo_url: string;
+  type: string;
+  description: string | null;
 };
 
 export default function Map({
   onPosChange,
+  type,
 }: {
   onPosChange: (pos: [number, number]) => void;
+  type: string;
 }) {
   const defaultPos: [number, number] = [14.5547, 121.0244];
   const [pos, setPos] = useState<[number, number]>(defaultPos);
-  const [centered, setCentered] = useState(false);
+  const [gpsPos, setGpsPos] = useState<[number, number] | null>(null);
   const [spots, setSpots] = useState<Spot[]>([]);
 
   // Load existing spots on mount
@@ -97,7 +114,7 @@ export default function Map({
         ];
         setPos(newPos);
         onPosChange(newPos);
-        setCentered(true);
+        setGpsPos(newPos);
       });
     }
   }, []);
@@ -117,19 +134,28 @@ export default function Map({
         url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         attribution='© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {centered && <RecenterMap lat={pos[0]} lng={pos[1]} />}
+      {gpsPos && <RecenterMap lat={gpsPos[0]} lng={gpsPos[1]} />}
       <ClickHandler onMapClick={handleMapClick} />
 
       {/* Current pin being placed */}
-      <Marker position={pos} icon={icon}>
+      <Marker position={pos} icon={icons[type] || defaultIcon}>
         <Popup>Tap Submit to report this spot</Popup>
       </Marker>
 
       {/* All submitted spots */}
       {spots.map((spot) => (
-        <Marker key={spot.id} position={[spot.lat, spot.lng]} icon={icon}>
+        <Marker
+          key={spot.id}
+          position={[spot.lat, spot.lng]}
+          icon={icons[spot.type] || defaultIcon}
+        >
           <Popup>
             <img src={spot.photo_url} style={{ width: 150, borderRadius: 8 }} />
+            {spot.description && (
+              <p style={{ marginTop: 6, fontSize: 13, color: "#374151" }}>
+                {spot.description}
+              </p>
+            )}
           </Popup>
         </Marker>
       ))}

@@ -13,6 +13,7 @@ export default function Home() {
   const [pos, setPos] = useState<[number, number]>([14.5547, 121.0244]);
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [type, setType] = useState("shop");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -32,8 +33,8 @@ export default function Home() {
 
   return (
     <main style={{ height: "100vh", width: "100%", position: "relative" }}>
-      <Map onPosChange={setPos} />
-      <Form lat={pos[0]} lng={pos[1]} />
+      <Map onPosChange={setPos} type={type} />
+      <Form lat={pos[0]} lng={pos[1]} type={type} onTypeChange={setType} />
 
       {/* Top-right auth status */}
       <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1000 }}>
