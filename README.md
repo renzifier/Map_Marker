@@ -64,7 +64,9 @@ CREATE TABLE spots (
   lat        FLOAT NOT NULL,
   lng        FLOAT NOT NULL,
   photo_url  TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  type       TEXT NOT NULL DEFAULT 'stray',
+  description TEXT
 );
 
 ALTER TABLE spots ENABLE ROW LEVEL SECURITY;
