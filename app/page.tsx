@@ -6,6 +6,8 @@ import Form from "./components/form";
 import Auth from "./components/auth";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import SpotPanel from "./components/spotpanel";
+import type { Spot } from "./components/map";
 
 const Map = dynamic(() => import("./components/map"), { ssr: false });
 
@@ -14,6 +16,7 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [type, setType] = useState("shop");
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -33,7 +36,8 @@ export default function Home() {
 
   return (
     <main style={{ height: "100vh", width: "100%", position: "relative" }}>
-      <Map onPosChange={setPos} type={type} />
+      <Map onPosChange={setPos} type={type} onSelectSpot={setSelectedSpot} />
+      <SpotPanel spot={selectedSpot} onClose={() => setSelectedSpot(null)} />
       <Form lat={pos[0]} lng={pos[1]} type={type} onTypeChange={setType} />
 
       {/* Top-right auth status */}

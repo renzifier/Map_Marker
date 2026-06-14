@@ -18,6 +18,7 @@ export default function Form({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [description, setDescription] = useState("");
+  const [expanded, setExpanded] = useState(false);
 
   async function handleSubmit() {
     const {
@@ -70,6 +71,17 @@ export default function Form({
     setLoading(false);
   }
 
+  if (!expanded) {
+    return (
+      <button
+        onClick={() => setExpanded(true)}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 rounded-full shadow-xl transition-colors flex items-center gap-2"
+      >
+        <span className="text-lg leading-none">+</span> Report a spot
+      </button>
+    );
+  }
+
   if (done)
     return (
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-2xl shadow-xl p-5 w-72 text-center">
@@ -80,17 +92,26 @@ export default function Form({
             setDone(false);
             setPhoto(null);
             setDescription("");
+            setExpanded(false);
           }}
           className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl transition-colors"
         >
-          Report another
+          Close
         </button>
       </div>
     );
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-2xl shadow-xl p-5 w-80">
-      <p className="font-semibold text-gray-800 mb-1">Report a spot</p>
+      <div className="flex justify-between items-center mb-1">
+        <p className="font-semibold text-gray-800">Report a spot</p>
+        <button
+          onClick={() => setExpanded(false)}
+          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+        >
+          ✕
+        </button>
+      </div>
       <p className="text-xs text-gray-400 mb-3">
         📍 {lat.toFixed(4)}, {lng.toFixed(4)}
       </p>

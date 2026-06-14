@@ -56,7 +56,7 @@ function ClickHandler({
   return null;
 }
 
-type Spot = {
+export type Spot = {
   id: string;
   lat: number;
   lng: number;
@@ -68,9 +68,11 @@ type Spot = {
 export default function Map({
   onPosChange,
   type,
+  onSelectSpot,
 }: {
   onPosChange: (pos: [number, number]) => void;
   type: string;
+  onSelectSpot: (spot: Spot) => void;
 }) {
   const defaultPos: [number, number] = [14.5547, 121.0244];
   const [pos, setPos] = useState<[number, number]>(defaultPos);
@@ -148,16 +150,8 @@ export default function Map({
           key={spot.id}
           position={[spot.lat, spot.lng]}
           icon={icons[spot.type] || defaultIcon}
-        >
-          <Popup>
-            <img src={spot.photo_url} style={{ width: 150, borderRadius: 8 }} />
-            {spot.description && (
-              <p style={{ marginTop: 6, fontSize: 13, color: "#374151" }}>
-                {spot.description}
-              </p>
-            )}
-          </Popup>
-        </Marker>
+          eventHandlers={{ click: () => onSelectSpot(spot) }}
+        />
       ))}
     </MapContainer>
   );
